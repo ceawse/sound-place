@@ -2,10 +2,9 @@ export interface Track {
     id: number;
     title: string;
     artist: string;
-    genre: string;
-    duration?: string;
-    coverUrl?: string; // Ссылка на картинку (заглушку)
-    fileUrl: string;   // Ссылка для скачивания
+    genreName: string;
+    fileUrl: string;
+    coverUrl?: string; // Добавили поле
+    createdAt: string;
 }
-
 export type SearchType = 'title' | 'artist';
