@@ -1,75 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
     --color-bg: #f8fafc;
-    --color-blob1: #dbeafe; /* Light Blue */
-    --color-blob2: #f3e8ff; /* Light Purple */
-    --color-blob3: #fee2e2; /* Light Pink */
+    --color-blob1: #dbeafe;
+    --color-blob2: #ede9fe;
+    --color-blob3: #ffe4e6;
 }
 
 body {
     background-color: var(--color-bg);
     margin: 0;
     font-family: 'Inter', sans-serif;
+    color: #0f172a;
     overflow-x: hidden;
 }
 
-/* Эффект размытых пятен на фоне */
+/* Фон с точечной сеткой и шумом */
 .bg-blobs {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     z-index: -1;
-    filter: blur(80px);
-    opacity: 0.6;
+    background-image:
+            radial-gradient(#e2e8f0 1.2px, transparent 1.2px),
+            url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 32px 32px, 200px 200px;
+    opacity: 0.4;
+}
+
+/* Анимированные градиентные пятна */
+.blobs-container {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    filter: blur(120px);
+    opacity: 0.8;
 }
 
 .blob {
     position: absolute;
     border-radius: 50%;
-    animation: move 20s infinite alternate;
+    animation: float 25s infinite alternate ease-in-out;
 }
 
-.blob-1 {
-    width: 400px;
-    height: 400px;
-    background: var(--color-blob1);
-    top: -100px;
-    left: -100px;
+.blob-1 { width: 800px; height: 800px; background: var(--color-blob1); top: -10%; left: -10%; }
+.blob-2 { width: 900px; height: 900px; background: var(--color-blob2); bottom: -15%; right: -5%; animation-delay: -5s; }
+.blob-3 { width: 500px; height: 500px; background: var(--color-blob3); top: 30%; left: 30%; animation-delay: -10s; }
+
+@keyframes float {
+    0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+    33% { transform: translate(100px, 50px) scale(1.1) rotate(120deg); }
+    66% { transform: translate(-50px, 100px) scale(0.9) rotate(240deg); }
+    100% { transform: translate(0, 0) scale(1) rotate(360deg); }
 }
 
-.blob-2 {
-    width: 500px;
-    height: 500px;
-    background: var(--color-blob2);
-    bottom: -150px;
-    right: -100px;
-    animation-delay: -5s;
-}
-
-.blob-3 {
-    width: 300px;
-    height: 300px;
-    background: var(--color-blob3);
-    top: 40%;
-    left: 30%;
-    animation-delay: -10s;
-}
-
-@keyframes move {
-    from { transform: translate(0, 0) scale(1); }
-    to { transform: translate(50px, 100px) scale(1.1); }
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
-    border-radius: 10px;
-}
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
