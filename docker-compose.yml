@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:15
+    container_name: music-db
+    restart: always
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: music-backend
+    restart: always
+    ports:
+      - "8082:8082"
+    environment:
+      - spring.datasource.url=jdbc:postgresql://db:5432/postgres
+      - spring.datasource.username=${DB_USERNAME}
+      - spring.datasource.password=${DB_PASSWORD}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - app.upload.dir=/app/uploads/tracks
+    volumes:
+      - ./uploads:/app/uploads/tracks
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

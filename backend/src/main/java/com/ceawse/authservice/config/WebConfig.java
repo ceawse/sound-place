@@ -10,7 +10,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/v1/**")
-                .allowedOrigins("http://localhost:5173", "http://localhost:3000") // Адреса фронтенда
+                .allowedOrigins("https://music.of44.fun, http://localhost:5173", "http://localhost:3000") // Адреса фронтенда
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
