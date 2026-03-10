@@ -1,0 +1,24 @@
+package com.ceawse.authservice.domain.repository;
+
+import com.ceawse.authservice.domain.entity.Track;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface TrackRepository extends JpaRepository<Track, Long> {
+
+    @Query("SELECT t FROM Track t WHERE " +
+            "LOWER(t.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(t.artist) LIKE LOWER(CONCAT('%', :query, '%'))")
+    List<Track> searchTracks(@Param("query") String query);
+
+    // Фильтрация по жанру
+    List<Track> findByGenreIdOrderByCreatedAtDesc(Long genreId);
+
+    // Все треки по дате (новые сверху)
+    List<Track> findAllByOrderByCreatedAtDesc();
+}

@@ -1,66 +1,64 @@
-import { useState, useMemo } from 'react';
-import { Search as SearchIcon, SlidersHorizontal, Filter } from 'lucide-react';
-import { Track, SearchType } from '../types/track';
+import { useState, useEffect } from 'react';
+import { Search as SearchIcon, Filter, SlidersHorizontal } from 'lucide-react';
+import { Track } from '../types/track';
 import TrackCard from '../components/TrackCard';
-
-const MOCK_TRACKS: Track[] = [
-    { id: 1, title: 'Midnight City', artist: 'M83', genre: 'Synthpop', fileUrl: '#' },
-    { id: 2, title: 'Starboy', artist: 'The Weeknd', genre: 'R&B', fileUrl: '#' },
-    { id: 3, title: 'Shape of You', artist: 'Ed Sheeran', genre: 'Pop', fileUrl: '#' },
-    { id: 4, title: 'Thunderstruck', artist: 'AC/DC', genre: 'Rock', fileUrl: '#' },
-    { id: 5, title: 'Humble', artist: 'Kendrick Lamar', genre: 'Hip-Hop', fileUrl: '#' },
-    { id: 6, title: 'Master of Puppets', artist: 'Metallica', genre: 'Metal', fileUrl: '#' },
-    { id: 7, title: 'Blinding Lights', artist: 'The Weeknd', genre: 'Pop', fileUrl: '#' },
-    { id: 8, title: 'Heat Waves', artist: 'Glass Animals', genre: 'Indie', fileUrl: '#' },
-];
-
-const GENRES = ['Все', 'Pop', 'Rock', 'Synthpop', 'R&B', 'Hip-Hop', 'Metal', 'Indie'];
+import { trackApi, genreApi } from '../api';
 
 export default function Home() {
+    const [tracks, setTracks] = useState<Track[]>([]);
+    const [genres, setGenres] = useState<any[]>([]); // Инициализируем пустым массивом
     const [searchQuery, setSearchQuery] = useState('');
-    const [searchType, setSearchType] = useState<SearchType>('title');
     const [selectedGenre, setSelectedGenre] = useState('Все');
+    const [isLoading, setIsLoading] = useState(true);
 
-    const filteredTracks = useMemo(() => {
-        return MOCK_TRACKS.filter(track => {
-            const matchesSearch = searchType === 'title'
-                ? track.title.toLowerCase().includes(searchQuery.toLowerCase())
-                : track.artist.toLowerCase().includes(searchQuery.toLowerCase());
+    useEffect(() => {
+        // Загружаем жанры
+        genreApi.getGenres()
+            .then(res => {
+                console.log("Жанры от сервера:", res.data);
+                // Проверяем, что пришел именно массив
+                if (Array.isArray(res.data)) {
+                    setGenres(res.data);
+                } else {
+                    console.error("Сервер вернул не массив жанров:", res.data);
+                    setGenres([]);
+                }
+            })
+            .catch(err => {
+                console.error("Ошибка при получении жанров:", err);
+                setGenres([]);
+            });
+    }, []);
 
-            const matchesGenre = selectedGenre === 'Все' || track.genre === selectedGenre;
-
-            return matchesSearch && matchesGenre;
-        });
-    }, [searchQuery, searchType, selectedGenre]);
+    useEffect(() => {
+        setIsLoading(true);
+        trackApi.getTracks(searchQuery, selectedGenre === 'Все' ? null : selectedGenre)
+            .then(res => {
+                console.log("Треки от сервера:", res.data);
+                if (Array.isArray(res.data)) {
+                    setTracks(res.data);
+                } else {
+                    setTracks([]);
+                }
+                setIsLoading(false);
+            })
+            .catch(err => {
+                console.error("Ошибка при получении треков:", err);
+                setTracks([]);
+                setIsLoading(false);
+            });
+    }, [searchQuery, selectedGenre]);
 
     return (
         <div className="space-y-10">
-            {/* Панель управления (Поиск + Жанры) */}
             <div className="flex flex-col md:flex-row gap-4 items-stretch">
-                {/* Поиск */}
                 <div className="flex-1 relative group">
-                    <div className="absolute -inset-1 bg-blue-500/10 rounded-[1.8rem] blur opacity-0 group-focus-within:opacity-100 transition duration-500"></div>
                     <div className="relative flex items-center bg-white/70 backdrop-blur-xl rounded-[1.5rem] border border-white shadow-[0_15px_40px_rgba(0,0,0,0.04)] p-1.5 transition-all duration-300 focus-within:shadow-[0_15px_50px_rgba(37,99,235,0.1)]">
-                        <div className="flex bg-slate-100/80 rounded-xl p-1">
-                            <button
-                                onClick={() => setSearchType('title')}
-                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${searchType === 'title' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
-                            >
-                                ТРЕК
-                            </button>
-                            <button
-                                onClick={() => setSearchType('artist')}
-                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black transition-all ${searchType === 'artist' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
-                            >
-                                АВТОР
-                            </button>
-                        </div>
-
                         <div className="flex-1 flex items-center px-4">
                             <SearchIcon className="text-slate-400 mr-3" size={18} />
                             <input
                                 type="text"
-                                placeholder={searchType === 'title' ? "Поиск по названию..." : "Поиск по артисту..."}
+                                placeholder="Поиск по названию или артисту..."
                                 className="w-full bg-transparent border-none outline-none text-slate-800 text-sm placeholder:text-slate-400 font-semibold"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -69,7 +67,6 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Фильтр по жанрам */}
                 <div className="md:w-64 relative group">
                     <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none z-10 text-blue-600">
                         <Filter size={16} />
@@ -79,8 +76,11 @@ export default function Home() {
                         onChange={(e) => setSelectedGenre(e.target.value)}
                         className="w-full h-full bg-white/70 backdrop-blur-xl border border-white shadow-[0_15px_40px_rgba(0,0,0,0.04)] rounded-[1.5rem] pl-11 pr-4 py-3 text-sm font-bold text-slate-700 outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-blue-500/20 transition-all"
                     >
-                        {GENRES.map(genre => (
-                            <option key={genre} value={genre}>{genre.toUpperCase()}</option>
+                        <option value="Все">ВСЕ ЖАНРЫ</option>
+                        {Array.isArray(genres) && genres.map(genre => (
+                            <option key={genre.id} value={genre.id}>
+                                {genre.name ? genre.name.toUpperCase() : 'БЕЗ НАЗВАНИЯ'}
+                            </option>
                         ))}
                     </select>
                     <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-300">
@@ -89,19 +89,20 @@ export default function Home() {
                 </div>
             </div>
 
-            {/* Контентная область */}
             <div className="space-y-6">
                 <div className="flex items-center gap-3 px-2">
                     <div className="h-[1px] flex-1 bg-slate-300/20"></div>
                     <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                        Библиотека / {selectedGenre} ({filteredTracks.length})
+                        Библиотека ({tracks.length})
                     </div>
                     <div className="h-[1px] flex-1 bg-slate-300/20"></div>
                 </div>
 
-                {filteredTracks.length > 0 ? (
+                {isLoading ? (
+                    <div className="py-24 text-center text-slate-400 font-black animate-pulse">ЗАГРУЗКА...</div>
+                ) : tracks.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-                        {filteredTracks.map(track => (
+                        {tracks.map(track => (
                             <TrackCard key={track.id} track={track} />
                         ))}
                     </div>
